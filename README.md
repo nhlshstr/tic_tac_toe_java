@@ -1,3 +1,3 @@
-# tic_tac_toe_java
-A simple game of tic-tac-toe implemented in Java.
-Test to make sure github setup is working
+Unity files for running TicTacToe
+
+Based on the tutorial here: https://learn.unity.com/tutorial/creating-a-tic-tac-toe-game-using-only-ui-components#5c7f8528edbc2a002053b4c3
