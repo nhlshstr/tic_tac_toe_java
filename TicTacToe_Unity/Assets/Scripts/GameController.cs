@@ -106,7 +106,7 @@ public class GameController : MonoBehaviour {
         //If no more spots remain to place a symbol...
         if (moveCount >= 9)
         {
-            SetGameOverText("It's a draw!");
+            GameOver("draw");
         }
 
         //If no line can be successfully drawn...
