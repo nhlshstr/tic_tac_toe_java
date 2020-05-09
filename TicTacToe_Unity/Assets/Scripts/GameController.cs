@@ -2,6 +2,21 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+[System.Serializable]
+public class Player
+{
+    public Image panel;
+    public Text text;
+    public Button button;
+}
+
+[System.Serializable]
+public class PlayerColor
+{
+    public Color panelColor;
+    public Color textColor;
+}
+
 /**
  * GameController - Function that handles the flow of the game.
  * Keeps track of player's turns as well as determine if the game
@@ -12,20 +27,23 @@ public class GameController : MonoBehaviour {
     public GameObject gameOverPanel;
     public Text gameOverText;
     public GameObject restartButton;
+    public Player playerX;
+    public Player playerO;
+    public PlayerColor activePlayerColor;
+    public PlayerColor inactivePlayerColor;
+    public GameObject startInfo;
 
     private string playerSide;
     private int moveCount;
 
     /**
      * Awake - Function that signifies the start of the game
-     * X always goes first
      * We also want to keep track of number of turns that has already passed
      * so we can end the game if no more turns can be made
      */
     void Awake()
     {
         SetGameControllerReferenceOnButtons();
-        playerSide = "X";
         gameOverPanel.SetActive(false);    //Disables win text at the start of the game
         moveCount = 0;
         restartButton.SetActive(false);    //Disables restart text at the start of the game
@@ -41,6 +59,35 @@ public class GameController : MonoBehaviour {
         {
             buttonList[i].GetComponentInParent<GridSpace>().SetGameControllerReference(this);
         }
+    }
+
+    /**
+     * SetStartingSide - Function that determines which symbol the player
+     * wants to play as
+     */
+    public void SetStartingSide (string startingSide)
+    {
+        playerSide = startingSide;
+        if (playerSide == "X")
+        {
+            SetPlayerColors(playerX, playerO);
+        }
+        else
+        {
+            SetPlayerColors(playerO, playerX);
+        }
+        StartGame();
+    }
+
+    /**
+     * StartGame - Function that starts the game by opening the board and
+     * closing symbol choices
+     */
+    void StartGame()
+    {
+        SetBoardInteractable(true);
+        SetPlayerButtons(false);
+        startInfo.SetActive(false);
     }
 
     /**
@@ -68,49 +115,52 @@ public class GameController : MonoBehaviour {
             GameOver(playerSide);
         }
         //Line check, middle row
-        if (buttonList[3].text == playerSide && buttonList[4].text == playerSide && buttonList[5].text == playerSide)
+        else if (buttonList[3].text == playerSide && buttonList[4].text == playerSide && buttonList[5].text == playerSide)
         {
             GameOver(playerSide);
         }
         //Line check, bottom row
-        if (buttonList[6].text == playerSide && buttonList[7].text == playerSide && buttonList[8].text == playerSide)
+        else if (buttonList[6].text == playerSide && buttonList[7].text == playerSide && buttonList[8].text == playerSide)
         {
             GameOver(playerSide);
         }
         //Line check, left column
-        if (buttonList[0].text == playerSide && buttonList[3].text == playerSide && buttonList[6].text == playerSide)
+        else if (buttonList[0].text == playerSide && buttonList[3].text == playerSide && buttonList[6].text == playerSide)
         {
             GameOver(playerSide);
         }
         //Line check, middle column
-        if (buttonList[1].text == playerSide && buttonList[4].text == playerSide && buttonList[7].text == playerSide)
+        else if (buttonList[1].text == playerSide && buttonList[4].text == playerSide && buttonList[7].text == playerSide)
         {
             GameOver(playerSide);
         }
         //Line check, right column
-        if (buttonList[2].text == playerSide && buttonList[5].text == playerSide && buttonList[8].text == playerSide)
+        else if (buttonList[2].text == playerSide && buttonList[5].text == playerSide && buttonList[8].text == playerSide)
         {
             GameOver(playerSide);
         }
         //Line check, top left to bottom right diagonal
-        if (buttonList[0].text == playerSide && buttonList[4].text == playerSide && buttonList[8].text == playerSide)
+        else if (buttonList[0].text == playerSide && buttonList[4].text == playerSide && buttonList[8].text == playerSide)
         {
             GameOver(playerSide);
         }
         //Line check, top right to bottom left diagonal
-        if (buttonList[2].text == playerSide && buttonList[4].text == playerSide && buttonList[6].text == playerSide)
+        else if (buttonList[2].text == playerSide && buttonList[4].text == playerSide && buttonList[6].text == playerSide)
         {
             GameOver(playerSide);
         }
 
         //If no more spots remain to place a symbol...
-        if (moveCount >= 9)
+        else if (moveCount >= 9)
         {
             GameOver("draw");
         }
 
-        //If no line can be successfully drawn...
-        ChangeSides();
+        //If none of the above if statements run...
+        else
+        {
+            ChangeSides();
+        }
     }
 
     /**
@@ -122,6 +172,26 @@ public class GameController : MonoBehaviour {
     {
         //Equivalent: if playerSide == "X", set playerSide to "O". Else, set to "X"
         playerSide = (playerSide == "X") ? "O" : "X";
+        if (playerSide == "X")
+        {
+            SetPlayerColors(playerX, playerO);
+        }
+        else
+        {
+            SetPlayerColors(playerO, playerX);
+        }
+    }
+
+    /**
+     * SetPlayerColors - Function that sets player colors. This prevents ambiguity
+     * as to which symbol is allowed to be placed next
+     */
+    void SetPlayerColors (Player newPlayer, Player oldPlayer)
+    {
+        newPlayer.panel.color = activePlayerColor.panelColor;
+        newPlayer.text.color = activePlayerColor.textColor;
+        oldPlayer.panel.color = inactivePlayerColor.panelColor;
+        oldPlayer.text.color = inactivePlayerColor.textColor;
     }
 
     /**
@@ -141,7 +211,7 @@ public class GameController : MonoBehaviour {
         SetBoardInteractable(false);
         if (winningPlayer == "draw")
         {
-            SetGameOverText("It's a Draw!");
+            SetGameOverText("It's a draw!");
         }
         else
         {
@@ -165,11 +235,12 @@ public class GameController : MonoBehaviour {
      */
     public void RestartGame()
     {
-        playerSide = "X";
         moveCount = 0;
         gameOverPanel.SetActive(false);
         restartButton.SetActive(false);
-        SetBoardInteractable(true);
+        SetPlayerButtons(true);
+        SetPlayerColorsInactive();
+        startInfo.SetActive(true);
 
         for (int i = 0; i < buttonList.Length; i++)
         {
@@ -188,5 +259,26 @@ public class GameController : MonoBehaviour {
         {
             buttonList[i].GetComponentInParent<Button>().interactable = toggle;
         }
+    }
+
+    /**
+     * SetPlayerButtons - Function that sets player's symbol choices
+     */
+    void SetPlayerButtons (bool toggle)
+    {
+        playerX.button.interactable = toggle;
+        playerO.button.interactable = toggle;
+    }
+
+    /**
+     * SetPlayerColorsInactive - Function that turns off the highlighted player
+     * when the game is restarted
+     */
+    void SetPlayerColorsInactive()
+    {
+        playerX.panel.color = inactivePlayerColor.panelColor;
+        playerX.text.color = inactivePlayerColor.textColor;
+        playerO.panel.color = inactivePlayerColor.panelColor;
+        playerO.text.color = inactivePlayerColor.textColor;
     }
 }
